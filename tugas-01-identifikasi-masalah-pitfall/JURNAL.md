@@ -2,23 +2,32 @@
 
 > Isi jurnal ini selama proses diskusi berlangsung, bukan ditulis ulang rapi di akhir. Tulis dengan gaya bebas — poin diskusi, kebuntuan, perubahan pikiran.
 
-## [9/19/2026]
+## [9/19/2026 - Sesi 1]
 - Peserta: [Moch. Yusuf Hendrawan E P, Ighfir Maulana]
 - Poin diskusi: Penentuan pitfall yang sesuai pada study case
 - Perbedaan pendapat (jika ada): 
 
   - `Ighfir` berpedapat bahwa pada study case FoodGo, bahwa pitfall yang paling sesuai adalah:
-    - Network is always reliable
-    - Latency is zero
-    - Single Point of Failure
+    - *Network is always reliable*
+    - *Latency is zero*
+    - *Single Point of Failure*
 
   - Disisi Lain `Andy` berpendapat bahwa pitfall yang paling sesuai adalah:
-     - Network is always reliable
-     - Latency is zero
-     - 
+     - *Network is always reliable*
+     - *Latency is zero*
+     - *Transport Cost is zero*
 
-## [Tanggal diskusi 2]
-- ...
+## [9/19/2026 - Sesi 2]
+- Peserta: [Moch. Yusuf Hendrawan E P, Ighfir Maulana, Faiz Agit Zahiri]
+- Poin diskusi: Penentuan pitfall yang sesuai pada study case
+- Perbedaan pendapat (jika ada): 
+
+  - `Andy` Memutuskan untuk mengubah pendapat nya setelah mendengarkan penjelasan dari `Ighfir` mengenai pitfall ketiga:
+        - Dari *Transport Cost is zero* -> *Single Point of Failure*
+
+  - `Faiz` bertanya kenapa pitfall *Bandwith is infinite* tidak ikut masuk. Saat ditanya buktinya, `Faiz` menjelaskan adanya lonjakan traffic pada network saat masa promo.
+
+  - `Ighfir` berasumsi bahwa jawaban `Faiz` bisa saja masuk karena jika saja tim menganggap kalau bandwith itu infinite, maka tim hanya perlu menyewa satu server dan menghandle banyak service.
 
 
 ## Review Silang
