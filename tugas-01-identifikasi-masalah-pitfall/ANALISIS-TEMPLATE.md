@@ -4,21 +4,29 @@
 
 | Nama | NIM | Kontribusi |
 |---|---|---|
-| [nama 1] | [nim] | [pitfall/bagian yang dikerjakan] |
+| Moch. Andy Yusuf Hendrawan E P | 103072400041 | Network is always reliable |
 | Ighfir Maulana | 103072400029 | Latency is Zero |
 | [Faiz Agit Zahiri] | [103072400123] | [Bandwidth is Infinite] |
 
-## Pitfall 1: [nama pitfall] — ditulis oleh [nama]
+## Pitfall 1: [Network is always reliable] — ditulis oleh [Moch. Andy Yusuf Hendrawan E P]
 
-**Bukti di skenario:** [kutip/paraphrase bagian skenario]
+**Bukti di skenario:** Munculnya kode `#network is reliable, no need for retry` pada aplikasi Foodgo karena tim developer beransumsi kalau jaringan mereka itu dapat diandalkan dan juga sistem mengalami kegagalan dikarenakan pemanggilan antar modul tidak memiliki fungsi time-out.
 
-**Kenapa ini keliru:** [penjelasan]
+**Kenapa ini keliru:** Komunikasi pada sistem terdistribusi pasti memerlukan *client* dan *server* pada jaringan komputer. Client mengirimkan berupa *Request* dan Server mengirimkan beupa Response. Baik maupun *Request* maupun Response harus melalu beberapa medium seperti router, modem, dll. Namun dalam proses pengiriman, tidak semuanya berjalan lancar karena ada beberapa faktor yang mempengaruhi meliputi masalah Hardware, Network Congestion, ataupun bug dalam software. Kondisi tersebut dinamakan packet loss. (sumber: [IR](https://www.ir.com/guides/what-is-network-packet-loss)).
 
-**Dampak ke FoodGo:** [mekanisme kegagalan konkret]
+Pada Aplikasi FoodGo, alasan kenapa asumsi `#network is reliable, no need for retry` bisa muncul karena testing dengan traffic rendah atau dilakukan  dengan tim developer sendiri. Oleh karena itu, saat traffic tiba tiba melonjak tinggi karena adanya event, sistem menjadi runtuh karena packet loss, koneksi terputus, dan request service yang gagal direspon.
 
-**Solusi desain awal:** [usulan solusi]
 
-**Trade-off:** [apa yang dikorbankan/risiko dari solusi ini]
+**Dampak ke FoodGo:** Dengan sistem aplikasi FoodGo yang tidak memiliki fitur time-out atau retry, satu error skala kecil koneksi ke modul pembayaran bisa membuat sistem transaksi menjadi gagal. Hal tersebut bisa dilihat dari aplikasi yang hang karena threads menunggu respons modul pembayaran dengan tanpa batas. Lalu pada saat traffics tinggi, jumlah threads akan semakin bertambah hingga kapasitas server tidak mampu menahan karena menghabiskan connection pool dan memori, dan pada akhirnya crash total dan butuh restart manual.
+
+
+**Solusi desain awal:** Mengimplementasikan fitur retry / 'coba lagi' dengan *exponential backoff* dan *jitter* saat request ke modul pembayaran gagal, lalu jumlah percobaanya akan dibatasi dengan *idempotency key* agar proses tidak bertambah banyak.
+
+Cara kerja: Setiap kali Request gagal, sistem akan mencoba untuk mengirimkan ulang secara otomatis dengan jeda waktu yang bertambah di tiap percobaan. Selain itu, jeda waktu juga diberikan variasi agar request dari banyak user yang mencoba di waktu bersamaan tidak dapat ikut mencoba ulang di waktu yang sama sehingga tidak membanjiri server.
+
+Contoh pada Apps: Kita bisa melihat pada aplikasi discord desktop dimana saat reconnect akan muncul pesan '1s.... 2s... 5s...' dan seterusnya.
+
+**Trade-off:** Implementasi fitur retry akan menambah latency pada jeda tunggu sebelum request berhasil. Selain itu, jika fitur retry atau jitter tidak diatur secara tepat, request yang mencoba ulang malahan akan berisiko untuk menambah beban pada server pembayaran yang overload.
 
 ---
 
