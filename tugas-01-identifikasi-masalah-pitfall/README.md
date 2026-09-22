@@ -56,7 +56,7 @@ Gunakan [`ANALISIS-TEMPLATE.md`](ANALISIS-TEMPLATE.md) sebagai kerangka — sali
 |---|---|---|
 | Moch. Andy Yusuf Hendrawan E P | 103072400041 | Network is always reliable |
 | Ighfir Maulana | 103072400029 | Latency is Zero |
-| [Faiz Agit Zahiri] | 103072400123 | Bandwidth is Infinite |
+| Faiz Agit Zahiri | 103072400123 | Bandwidth is Infinite |
 
 ## Pitfall 1: Network is always reliable — ditulis oleh Moch. Andy Yusuf Hendrawan E P
 
