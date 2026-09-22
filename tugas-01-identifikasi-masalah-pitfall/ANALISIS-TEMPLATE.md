@@ -6,7 +6,7 @@
 |---|---|---|
 | [nama 1] | [nim] | [pitfall/bagian yang dikerjakan] |
 | Ighfir Maulana | 103072400029 | Latency is Zero |
-| [nama 3] | [nim] | [pitfall/bagian yang dikerjakan] |
+| [Faiz Agit Zahiri] | [103072400123] | [Bandwidth is Infinite] |
 
 ## Pitfall 1: [nama pitfall] — ditulis oleh [nama]
 
@@ -40,9 +40,18 @@ Contoh: ketika *service* pesanan memanggil modul pembayaran dan ternyata terdapa
 
 ---
 
-## Pitfall 3: [nama pitfall] — ditulis oleh [nama]
+## Pitfall 3: [Bandwidth is Infinite] — ditulis oleh [Faiz Agit Zahiri]
 
-(ulangi struktur di atas)
+**Bukti Skenario:** Saat trafik naik, satu server yang menangani semua modul (pesanan, pembayaran, notifikasi kurir) kewalahan karena semuanya berjalan di satu proses monolitik yang sama.
+
+**Kenapa ini keliru:** Karena dari bandwidth itu sendiri adalah shared resource, bukan dedicated atau bisa dimaksudkan dengan satu link yang dipakai bergantian / bersama oleh banyak proses, request, ataupun user. termasuk startup FoodGo itu sendiri akan selalu berubah - ubah pada bagian kapasitas yang tersedia tergantung siapa yang sedang memakai startup FoodGo secara bersamaan
+
+**Dampak ke FoodGo:** Bandwidth yang cukup untuk beban rata - rata bisa jebol saat traffic burst (jam sibuk, flash sale, viral event)
+
+**Solusi desain awal:** Menghitung estimasi payload per request dengan concurrent users dan juga frekuensi, lalu bandingkan dengan kapasitas link terlemah (biasanya last-mile client, bukan server)
+
+**Trade-off:** Butuh waktu di fase perencanaan. kalau under-estimate, nantinya sistem tetap kena masalah. Kalau over-estimate, biaya infrastruktur jadi lebih mahal dari kebutuhan nyata.
+
 
 ---
 
