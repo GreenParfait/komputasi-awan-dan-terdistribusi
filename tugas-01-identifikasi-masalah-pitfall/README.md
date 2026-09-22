@@ -56,13 +56,13 @@ Gunakan [`ANALISIS-TEMPLATE.md`](ANALISIS-TEMPLATE.md) sebagai kerangka — sali
 |---|---|---|
 | Moch. Andy Yusuf Hendrawan E P | 103072400041 | Network is always reliable |
 | Ighfir Maulana | 103072400029 | Latency is Zero |
-| [Nama] | [NIM] | [pitfall/bagian yang dikerjakan] |
+| [Faiz Agit Zahiri] | 103072400123 | Bandwidth is Infinite |
 
-## Pitfall 1: [Network is always reliable] — ditulis oleh [Moch. Andy Yusuf Hendrawan E P]
+## Pitfall 1: Network is always reliable — ditulis oleh Moch. Andy Yusuf Hendrawan E P
 
 **Bukti di skenario:** Munculnya kode `#network is reliable, no need for retry` pada aplikasi Foodgo karena tim developer beransumsi kalau jaringan mereka itu dapat diandalkan dan juga sistem mengalami kegagalan dikarenakan pemanggilan antar modul tidak memiliki fungsi time-out.
 
-**Kenapa ini keliru:** Komunikasi pada sistem terdistribusi pasti memerlukan *client* dan *server* pada jaringan komputer. Client mengirimkan berupa *Request* dan Server mengirimkan beupa Response. Baik maupun *Request* maupun Response harus melalu medium seperti router, modem, dll. Namun dalam proses pengiriman, tidak semuanya berjalan lancar karena ada beberapa faktor yang mempengaruhi meliputi masalah Hardware, Network Congestion, ataupun bug dalam software. Kondisi tersebut dinamakan packet loss. (sumber: [IR](https://www.ir.com/guides/what-is-network-packet-loss)).
+**Kenapa ini keliru:** Komunikasi pada sistem terdistribusi pasti memerlukan *client* dan *server* pada jaringan komputer. Client mengirimkan berupa *Request* dan Server mengirimkan beupa Response. Baik maupun *Request* maupun Response harus melalu beberapa medium seperti router, modem, dll. Namun dalam proses pengiriman, tidak semuanya berjalan lancar karena ada beberapa faktor yang mempengaruhi meliputi masalah Hardware, Network Congestion, ataupun bug dalam software. Kondisi tersebut dinamakan packet loss. (sumber: [IR](https://www.ir.com/guides/what-is-network-packet-loss)).
 
 Pada Aplikasi FoodGo, alasan kenapa asumsi `#network is reliable, no need for retry` bisa muncul karena testing dengan traffic rendah atau dilakukan  dengan tim developer sendiri. Oleh karena itu, saat traffic tiba tiba melonjak tinggi karena adanya event, sistem menjadi runtuh karena packet loss, koneksi terputus, dan request service yang gagal direspon.
 
@@ -76,7 +76,7 @@ Cara kerja: Setiap kali Request gagal, sistem akan mencoba untuk mengirimkan ula
 
 Contoh pada Apps: Kita bisa melihat pada aplikasi discord desktop dimana saat reconnect akan muncul pesan '1s.... 2s... 5s...' dan seterusnya.
 
-**Trade-off:** Implementasi fitur retry akan menambah latency pada jeda tunggu sebelum request berhasil. Selain itu, jika fitur retry atau jitter tidak diatur secara tepat, request yang mencoba ulang malahan akan berisiko untuk menambah beban pada server pembayaran yang overload sebelum crash.
+**Trade-off:** Implementasi fitur retry akan menambah latency pada jeda tunggu sebelum request berhasil. Selain itu, jika fitur retry atau jitter tidak diatur secara tepat, request yang mencoba ulang malahan akan berisiko untuk menambah beban pada server pembayaran yang overload.
 
 ---
 
@@ -98,17 +98,24 @@ Contoh: ketika *service* pesanan memanggil modul pembayaran dan ternyata terdapa
 
 ---
 
-## Pitfall 3: [nama pitfall] — ditulis oleh [nama]
+## Pitfall 3: Bandwidth is Infinite — ditulis oleh Faiz Agit Zahiri
 
-(ulangi struktur di atas)
+**Bukti Skenario:** Saat trafik naik, satu server yang menangani semua modul (pesanan, pembayaran, notifikasi kurir) kewalahan karena semuanya berjalan di satu proses monolitik yang sama.
+
+**Kenapa ini keliru:** Karena dari bandwidth itu sendiri adalah shared resource, bukan dedicated atau bisa dimaksudkan dengan satu link yang dipakai bergantian / bersama oleh banyak proses, request, ataupun user. termasuk startup FoodGo itu sendiri akan selalu berubah - ubah pada bagian kapasitas yang tersedia tergantung siapa yang sedang memakai startup FoodGo secara bersamaan
+
+**Dampak ke FoodGo:** Bandwidth yang cukup untuk beban rata - rata bisa jebol saat traffic burst (jam sibuk, flash sale, viral event)
+
+**Solusi desain awal:** Menghitung estimasi payload per request dengan concurrent users dan juga frekuensi, lalu bandingkan dengan kapasitas link terlemah (biasanya last-mile client, bukan server)
+
+**Trade-off:** Butuh waktu di fase perencanaan. kalau under-estimate, nantinya sistem tetap kena masalah. Kalau over-estimate, biaya infrastruktur jadi lebih mahal dari kebutuhan nyata.
+
 
 ---
 
 ## Kesimpulan Kelompok
 
 [Ringkasan: jika FoodGo memperbaiki ketiga pitfall ini, apa arsitektur yang disarankan secara garis besar? Kaitkan dengan Tugas 2.]
-
-
 
 ## Rubrik Penilaian (Tugas 1)
 
