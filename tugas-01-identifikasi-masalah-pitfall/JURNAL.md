@@ -39,10 +39,11 @@
     - `Andy` menganggap kalau jawaban tersebut kontradiksi dikarenakan sistem mengalami beberapa timeout saat terjadi lonjakan traffic.
     - Keduanya menganggap kesimpulan kalau `Sistem` tidak menyadari kalau dirinya sendiri sedang mengalami error.
 
-## Review Silang
-- [Nama] mengomentari analisis [Nama lain]: ...
+## [9/22/2026 - Sesi 4]
+- Peserta: [Moch. Yusuf Hendrawan E P, Ighfir Maulana, Faiz Agit Zahiri]
+- Poin diskusi: Review Diskusi silang + Pemasukkan Prompt
+- Perbedaan pendapat (jika ada): 
 
-## Log Penggunaan AI (Level 2)
 
 > Wajib diisi sesuai kebijakan Level 2 di [`../RUBRIK-UMUM.md`](../RUBRIK-UMUM.md). Tulis "Tidak memakai AI" pada baris pertama jika memang tidak dipakai. Hanya untuk brainstorming ide/outline — bukan untuk kode/analisis/teks akhir.
 
