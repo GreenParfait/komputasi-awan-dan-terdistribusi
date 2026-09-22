@@ -29,6 +29,15 @@
 
   - `Ighfir` berasumsi bahwa jawaban `Faiz` bisa saja masuk karena jika saja tim menganggap kalau bandwith itu infinite, maka tim hanya perlu menyewa satu server dan menghandle banyak service.
 
+## [9/21/2026 - Sesi 3]
+- Peserta: [Moch. Yusuf Hendrawan E P, Faiz Agit Zahiri]
+- Poin diskusi: Memperdebatkan Masalah Timeout
+- Perbedaan pendapat (jika ada): 
+
+    - `Andy` bertanya salah satu pertanyaan pada `Faiz` mengenai asumsi yang dikeluarkan dari kode.
+    - `Faiz` menjelaskan kalau tim mereka sendirilah yang menulis kalau *'Network is reliable'*.
+    - `Andy` menganggap kalau jawaban tersebut kontradiksi dikarenakan sistem mengalami beberapa timeout saat terjadi lonjakan traffic.
+    - Keduanya menganggap kesimpulan kalau `Sistem` tidak menyadari kalau dirinya sendiri sedang mengalami error.
 
 ## Review Silang
 - [Nama] mengomentari analisis [Nama lain]: ...
