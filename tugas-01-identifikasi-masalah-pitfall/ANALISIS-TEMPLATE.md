@@ -5,7 +5,7 @@
 | Nama | NIM | Kontribusi |
 |---|---|---|
 | [nama 1] | [nim] | [pitfall/bagian yang dikerjakan] |
-| Ighfir Maulana | 103072400029 | Latency is Zero |
+| [nama 2] | [nim] | [pitfall/bagian yang dikerjakan] |
 | [nama 3] | [nim] | [pitfall/bagian yang dikerjakan] |
 
 ## Pitfall 1: [nama pitfall] — ditulis oleh [nama]
@@ -22,7 +22,7 @@
 
 ---
 
-## Pitfall 2: Latency is Zero — ditulis oleh Ighfir Maulana
+## Pitfall 2: [nama pitfall] — ditulis oleh [nama]
 
 **Bukti di skenario:** Aplikasi FoodGo mengalami kegagalan sistem saat pesanan melonjak salah satunya yaitu aplikasi menjadi sangat lambat dan beberapa permintaan *timeout*.
 
