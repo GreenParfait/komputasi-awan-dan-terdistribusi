@@ -67,7 +67,7 @@ Gunakan [`ANALISIS-TEMPLATE.md`](ANALISIS-TEMPLATE.md) sebagai kerangka — sali
 Pada Aplikasi FoodGo, alasan kenapa asumsi `#network is reliable, no need for retry` bisa muncul karena testing dengan traffic rendah atau dilakukan  dengan tim developer sendiri. Oleh karena itu, saat traffic tiba tiba melonjak tinggi karena adanya event, sistem menjadi runtuh karena packet loss, koneksi terputus, dan request service yang gagal direspon.
 
 
-**Dampak ke FoodGo:** Dengan sistem aplikasi FoodGo yang tidak memiliki fitur time-out atau retry, satu error skala kecil koneksi ke modul pembayaran bisa membuat sistem transaksi menjadi gagal. Hal tersebut bisa dilihat dari aplikasi yang hang karena threads menunggu respons modul pembayaran dengan tanpa batas. Lalu pada saat traffics tinggi, jumlah threads akan semakin bertambah hingga kapasitas server tidak mampu menahan karena menghabiskan connection pool dan memori, dan pada akhirnya crash total dan butuh restart manual.
+**Dampak ke FoodGo:** Dengan sistem aplikasi FoodGo yang tidak memiliki fitur time-out atau retry, satu error kecil koneksi ke modul pembayaran bisa membuat sistem transaksi menjadi gagal. Hal tersebut bisa dilihat dari aplikasi yang hang karena threads menunggu respons modul pembayaran dengan tanpa batas. Lalu pada saat traffic tinggi, jumlah threads akan semakin bertambah hingga kapasitas server tidak mampu menahan karena menghabiskan *connection pool* dan *memori*, dan pada akhirnya crash total dan butuh restart manual.
 
 
 **Solusi desain awal:** Mengimplementasikan fitur retry / 'coba lagi' dengan *exponential backoff* dan *jitter* saat request ke modul pembayaran gagal, lalu jumlah percobaanya akan dibatasi dengan *idempotency key* agar proses tidak bertambah banyak.
@@ -116,6 +116,10 @@ Contoh: ketika *service* pesanan memanggil modul pembayaran dan ternyata terdapa
 ## Kesimpulan Kelompok
 
 [Ringkasan: jika FoodGo memperbaiki ketiga pitfall ini, apa arsitektur yang disarankan secara garis besar? Kaitkan dengan Tugas 2.]
+
+Ringkasan: Dari hasil diskusi, arsitektur yang kami sarankan adalah pengimplementasian mekanisme time-out pada service pesanan, transaksi, dan notifikasi kurir.
+
+Solusi alternatif adalah pemisahan server menjadi beberapa poin sehingga berjalan secara heterogen (satu service berjalan pada satu server yang berbeda).
 
 ## Rubrik Penilaian (Tugas 1)
 
