@@ -2,13 +2,42 @@
 
 > Isi jurnal ini selama proses diskusi berlangsung, bukan ditulis ulang rapi di akhir. Tulis dengan gaya bebas — poin diskusi, kebuntuan, perubahan pikiran.
 
-## [Tanggal diskusi 1]
-- Peserta: [nama-nama yang hadir]
-- Poin diskusi: ...
-- Perbedaan pendapat (jika ada): ...
+## [9/19/2026 - Sesi 1]
+- Peserta: [Moch. Yusuf Hendrawan E P, Ighfir Maulana]
+- Poin diskusi: Penentuan pitfall yang sesuai pada study case
+- Perbedaan pendapat (jika ada): 
 
-## [Tanggal diskusi 2]
-- ...
+  - `Ighfir` berpedapat bahwa pada study case FoodGo, bahwa pitfall yang paling sesuai adalah:
+    - *Network is always reliable*
+    - *Latency is zero*
+    - *Single Point of Failure*
+
+  - Disisi Lain `Andy` berpendapat bahwa pitfall yang paling sesuai adalah:
+     - *Network is always reliable*
+     - *Latency is zero*
+     - *Transport Cost is zero*
+
+## [9/19/2026 - Sesi 2]
+- Peserta: [Moch. Yusuf Hendrawan E P, Ighfir Maulana, Faiz Agit Zahiri]
+- Poin diskusi: Penentuan pitfall yang sesuai pada study case
+- Perbedaan pendapat (jika ada): 
+
+  - `Andy` Memutuskan untuk mengubah pendapat nya setelah mendengarkan penjelasan dari `Ighfir` mengenai pitfall ketiga:
+        - Dari *Transport Cost is zero* -> *Single Point of Failure*
+
+  - `Faiz` bertanya kenapa pitfall *Bandwith is infinite* tidak ikut masuk. Saat ditanya buktinya, `Faiz` menjelaskan adanya lonjakan traffic pada network saat masa promo.
+
+  - `Ighfir` berasumsi bahwa jawaban `Faiz` bisa saja masuk karena jika saja tim menganggap kalau bandwith itu infinite, maka tim hanya perlu menyewa satu server dan menghandle banyak service.
+
+## [9/21/2026 - Sesi 3]
+- Peserta: [Moch. Yusuf Hendrawan E P, Faiz Agit Zahiri]
+- Poin diskusi: Memperdebatkan Masalah Timeout
+- Perbedaan pendapat (jika ada): 
+
+    - `Andy` bertanya salah satu pertanyaan pada `Faiz` mengenai asumsi yang dikeluarkan dari kode.
+    - `Faiz` menjelaskan kalau tim mereka sendirilah yang menulis kalau *'Network is reliable'*.
+    - `Andy` menganggap kalau jawaban tersebut kontradiksi dikarenakan sistem mengalami beberapa timeout saat terjadi lonjakan traffic.
+    - Keduanya menganggap kesimpulan kalau `Sistem` tidak menyadari kalau dirinya sendiri sedang mengalami error.
 
 ## Review Silang
 - [Nama] mengomentari analisis [Nama lain]: ...
@@ -19,4 +48,4 @@
 
 | Tanggal | Tool AI | Prompt yang diberikan | Ringkasan saran/ide AI | Bagaimana diolah jadi tulisan/kode sendiri |
 |---|---|---|---|---|
-| ... | ... | ... | ... | ... |
+| 19/09/2026 | Gemini 3.6 Flash Mendalam | kamu adalah seorang dosen dan praktisi komputasi awan dan terdistribusi dengan pengalaman industri selama 10 tahun. kamu memiliki kemampuan untuk menjelaskan konsep teknis yang kompleks dengan bahasa yang mudah dipahami oleh mahasiswa atau praktisi junior. Tugasmu adalah menjelaskan 8 Fallacies of Distributed Computing dan masalah desain sistem terdistribusi lainnya (seperti single point of failure pada arsitektur monolitik). Penjelasan harus mencakup definisi, alasan mengapa hal tersebut dianggap sebagai kesalahan (fallacy), dan contoh kasus nyata di industri. Output harus disusun dalam format berikut: 1. Pendahuluan singkat (maksimal 100 kata). 2. Tabel perbandingan untuk 8 Fallacies of Distributed Computing dengan kolom: Nama Fallacy, Penjelasan Singkat, dan Contoh Kasus Nyata. 3. Penjelasan mendalam mengenai masalah desain sistem terdistribusi lainnya (minimal 3 masalah). 4. Kesimpulan (maksimal 50 kata). Gunakan bahasa Indonesia yang profesional namun komunikatif. Hindari jargon yang tidak dijelaskan. Pastikan setiap contoh kasus relevan dengan arsitektur sistem modern. - Penjelasan mencakup tepat 8 Fallacies of Distributed Computing. - Terdapat tabel perbandingan dengan 3 kolom yang ditentukan. - Minimal 3 masalah desain sistem terdistribusi tambahan dijelaskan. - Panjang pendahuluan maksimal 100 kata dan kesimpulan maksimal 50 kata. - Bahasa yang digunakan adalah bahasa Indonesia. | *the network is reliable* = Menganggap koneksi antarlayanan tidak pernah terputus atau mengalami kegagalan pengiriman data. *latency is zero* = Mengasumsikan pemanggilan fungsi melalui jaringan memiliki kecepatan yang sama dengan pemanggilan di memori lokal. *bandwidth is infinite* = Menganggap kapasitas pipa transfer data antarserver selalu cukup untuk menampung seluruh muatan data. *the network is secure* = Mengasumsikan lalu lintas data di dalam jaringan internal atau pusat data lokal sudah pasti terisolasi dan bebas ancaman. *topology doesn't change* = Menganggap struktur jaringan, alamat protokol internet, dan rute server bersifat statis dan tidak akan pernah berpindah. *there is one administrator* = Mengasumsikan seluruh infrastruktur terdistribusi dikelola oleh satu pihak dengan aturan kebijakan yang seragam. *transport cost is zero* = Mengabaikan konsumsi daya komputasi, pemrosesan serialisasi data, dan biaya beban transfer data dari penyedia awan. *the network is homogeneous* = Mengasumsikan seluruh perangkat, sistem operasi, dan protokol di dalam jaringan menggunakan standar perangkat keras dan lunak yang identik. *single point of failure* = Apabila mengalami kerusakan/henti fungsi, akan langsung menyebabkan keseluruhan sistem tidak dapat beroperasi secara total. *The Problem of Duplicate Entries and Data Inconsistencies* = Kegagalan di salah satu *database* akan mengakibatkan ketidaksesuaian status data. *Domino Effects and the Demand Surge Phenomenon* = Kegagalan berantai adalah kondisi di mana keterlambatan atau kegagalan pada satu komponen kecil memicu beban berlebih secara beruntun pada komponen pendukung lainnya.| Seperti yang sudah kami jelaskan sebelumnya, dalam pengirimannya, data "melewati" server, yang mana dalam satu aplikasi seperti FoodGo memiliki beberapa *service*. Padahal pada suatu aplikasi, data akan berpindah berurutan dari *service* satu ke *service* yang lain. Dengan kata lain, kalau suatu *service* sedang bermasalah/terhambat, maka datanya juga tertunda/terhambat sehingga menyebabkan latensi. Terlebih lagi jika terjadi kesalahan dalam memanajemen aplikasi salah satunya salah dalam menentukan arsitekturnya. |
