@@ -16,37 +16,26 @@ Melanjutkan Tugas 1: FoodGo butuh sistem yang **decoupled** agar tim kurir dan t
 
 ## Tugas 2 — Perancangan Arsitektur FoodGo
 
-### 1. Masalah yang Diselesaikan
 
-FoodGo berjalan sebagai **satu aplikasi monolitik** (pola MVC): modul Pesanan, Pembayaran, Notifikasi Kurir, dan Katalog Resto berada dalam satu unit deploy. Akibatnya:
+### 1. Gaya Arsitektur yang Dipilih
 
-- Satu modul diperbarui → **semua modul ikut restart** → risiko downtime total.
-- Modul saling bergantung erat (*tightly coupled*): jika satu modul jebol, modul lain ikut jebol.
-- Tim kurir dan tim resto tidak bisa deploy secara independen.
-
-Target desain: **decoupled**, sehingga tiap modul bisa di-deploy, di-*scale*, dan gagal secara terpisah.
-
-### 2. Gaya Arsitektur yang Dipilih
-
-**Kombinasi: Service-Oriented Architecture (SOA / microservice) untuk service inti + Publish-Subscribe untuk notifikasi dan koordinasi antar-tim.**
+**Kombinasi: SOA (service inti) + Publish-Subscribe (notifikasi dan koordinasi, asinkron).**
 
 | Bagian sistem | Gaya | Komunikasi | Alasan |
 |---|---|---|---|
-| Client → API Gateway → Service | SOA (REST API) | Sinkron, request-response | Klien butuh jawaban langsung (menu, status bayar) |
-| Order → Payment | SOA | Sinkron, request-response | Pesanan tidak boleh lanjut sebelum hasil pembayaran pasti |
-| Order → Katalog (cek menu/harga) | SOA | Sinkron, request-response | Validasi harus selesai sebelum pesanan dibuat |
+| Client → API Gateway → Service | SOA (REST) | Sinkron, request-response | Klien butuh jawaban langsung |
+| Order → Katalog (cek menu/harga) | SOA | Sinkron, request-response, timeout | Validasi harus selesai sebelum menu valid |
+| Order → Payment | SOA | Sinkron, request-response, timeout + retry + idempotency key | Hasil pembayaran harus pasti sebelum pesanan lanjut  |
 | Order → Resto, Kurir, Notifikasi pelanggan | Publish-Subscribe | Asinkron, event | Order tidak perlu tahu siapa penerimanya dan tidak boleh gagal hanya karena penerima sedang down |
 
-#### Justifikasi kenapa memilih arsitektur kombinasi
+#### Justifikasi kenapa kami jatuh ke arsitektur kombinasi
 
 - **Opsi 1: SOA:** Jika Order memanggil Kurir dan Resto secara sinkron, Order tetap *coupled* ke keduanya: saat service Kurir sedang deploy ulang, pesanan pelanggan ikut gagal. Ini mengulang masalah monolit dalam bentuk lain.
 - **Opsi 2: Pub-Sub.** Pembayaran butuh kepastian hasil sebelum pesanan dilanjutkan. Kalau dibuat event murni, alur menjadi tidak linear dan sulit dikontrol tepat di titik yang paling sensitif (uang).
-- **Kombinasi:** alur yang butuh jawaban langsung memakai request-response (SOA); alur yang berupa "beri tahu pihak lain bahwa sesuatu terjadi" memakai event (Pub-Sub). Publisher hanya mengirim ke *channel* di message broker, sehingga penambahan subscriber baru (mis. layanan promo) tidak mengubah Service Pesanan.
-
-Pemisahan modul mengikuti prinsip microservice: satu aplikasi besar dipecah menjadi layanan kecil yang terpisah, terhubung lewat konektor (*bridge*/API/broker). Jika satu layanan jebol, layanan lain tetap berjalan.
+- **Kombinasi:** Alur butuh jawaban langsung memakai request-response, dan setiap panggilannya diberi timeout dan retry terbatas. alur yang berupa "beri tahu pihak lain bahwa sesuatu terjadi" memakai event (Pub-Sub).
 
 
-## 3. Diagram Komponen
+## 2. Diagram Komponen
 
 - Garis **solid** = komunikasi sinkron (request-response). Garis **putus-putus** = komunikasi asinkron (event via broker).
 
@@ -77,7 +66,7 @@ graph LR
 
 Setiap service memiliki **database sendiri** agar tidak ada ketergantungan lewat data bersama (sumber *coupling* yang sering terlewat).
 
-- Skenario End-to-End: Pelanggan Pesan → Bayar → Resto Menerima → Kurir Ditugaskan.
+## 3. Skenario End-to-End: Pelanggan Pesan → Bayar → Resto Menerima → Kurir Ditugaskan.
 ```mermaid
 sequenceDiagram
   autonumber
@@ -125,15 +114,13 @@ sequenceDiagram
 
 **Gaya yang dipilih: kombinasi SOA + Publish-Subscribe.** Service inti (Pesanan, Pembayaran, Katalog Resto) dipisah sebagai service mandiri dan saling memanggil secara **sinkron** (REST/RPC) untuk langkah yang hasilnya harus diketahui saat itu juga, misalnya Pesanan → Pembayaran. Notifikasi ke resto dan kurir memakai **Pub-Sub** (asinkron, berbasis event lewat message broker), karena Service Pesanan tidak perlu menunggu atau mengetahui siapa yang bereaksi terhadap pesanan. Kombinasi ini dipilih karena Pub-Sub saja tidak cocok untuk langkah yang butuh jawaban langsung (mis. pembayaran berhasil atau tidak), sedangkan SOA murni dengan panggilan sinkron di semua jalur akan mempertahankan *coupling* antara tim kurir dan tim resto.
 
-1. **Deploy independen.** Tim kurir dapat men-deploy ulang Service Notifikasi Kurir tanpa menyentuh Service Pesanan atau Katalog Resto. Tidak ada lagi restart massal dan downtime total.
-2. **Isolasi kegagalan.** Jika Service Notifikasi Kurir mati, Service Pesanan tetap menerima dan menyimpan pesanan. Event `OrderPaid` menunggu di antrean broker dan diproses saat Service Notifikasi Kurir hidup kembali (dengan asumsi antrean bersifat *durable*). Pada monolit, kegagalan satu modul, misalnya thread yang menggantung menunggu modul pembayaran tanpa *timeout*, menjatuhkan seluruh aplikasi.
-3. **Coupling longgar (*loose coupling*).** Service Pesanan sebagai publisher tidak tahu siapa subscriber-nya. Menambah subscriber baru (mis. layanan analitik atau promo) tidak mengubah kode Service Pesanan.
+1. **Deploy independen.** Tim kurir men-deploy ulang Service Kurir dan Notifikasi tanpa menyentuh Pesanan, Pembayaran, atau Katalog. Tidak ada restart massal dan downtime total.
+2. **Isolasi kegagalan.** Jika Service Kurir mati, Service Pesanan tetap menerima dan menyimpan pesanan. Event `OrderPaid` menunggu di antrean broker dan diproses saat Service Notifikasi Kurir hidup kembali (dengan asumsi antrean bersifat *durable*). Pada monolit, kegagalan satu modul, misalnya thread yang menggantung menunggu modul pembayaran tanpa *timeout*, menjatuhkan seluruh aplikasi.
+3. **Loose Coupling.** Publisher tidak tahu siapa subscriber-nya. Menambah subscriber baru (mis. layanan promo atau analitik) tidak mengubah kode Service Pesanan.
 4. **Publisher tidak terblokir (*asynchronous, non-blocking*).** Setelah mempublikasikan `OrderPaid`, Service Pesanan langsung melanjutkan pekerjaannya tanpa menunggu resto atau kurir selesai memproses. Pekerjaan berat di sisi subscriber tidak memperlambat jalur utama pesanan.
 5. **Scaling per kebutuhan.** Saat jam makan siang atau promo besar, Service Pesanan dan Service Notifikasi Kurir bisa diperbanyak instance-nya tanpa ikut menggandakan Service Katalog Resto. Pada monolit, seluruh aplikasi harus digandakan.
 
-**Manfaat tambahan (di luar fokus coupling):** notifikasi ke resto dan kurir yang dikirim lewat event menjaga latensi tetap rendah, sehingga pesanan terasa *real-time* bagi pengguna.
-
-## 5. Analisis Trade-off (Kelemahan dan Kompleksitas Baru) dan Catatan migrasi bertahap.
+## Analisis Trade-off (Kelemahan dan Kompleksitas Baru) dan Catatan migrasi bertahap.
 
 ### - Analisis Trade-off
 
