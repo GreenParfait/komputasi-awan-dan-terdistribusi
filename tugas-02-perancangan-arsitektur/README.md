@@ -99,7 +99,7 @@ sequenceDiagram
 | 6 | Katalog Resto → Broker (`RestoAccepted`) | Asinkron | *Event, publish* |
 | 7 | Service Kurir → Broker (`CourierAssigned`) → Notifikasi Pelanggan | Asinkron | *Event, publish/subscribe* |
 
-## 5. Analisis
+## 4. Analisis
 - Kenapa Gaya Ini Mengatasi Masalah Coupling?
  
 1. *Deploy* independen yang membuat tidak ada lagi *restart* sistem secara massal sehingga menyebabkan *downtime* total. Contoh: Tim kurir men-*deploy* ulang *Service* Kurir tanpa mengubah dan tidak menyebabkan Service Pesanan atau Katalog terganggu.
