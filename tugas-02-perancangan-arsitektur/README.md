@@ -38,6 +38,7 @@ Dari kedua definisi di atas, kami memilih *arsitektur kombinasi* yaitu **SOA unt
 #### Justifikasi kenapa kami memilih arsitektur kombinasi
 
 - Opsi 1: SOA: Jika Order memanggil Kurir dan Resto secara sinkron, Order akan tetap bergantung pada ke keduanya (*coupled*) sehingga jika salah satu dari keduanya sedang ada kendala, maka Order akan gagal. Contoh: saat service Kurir sedang *update* versi aplikasi atau *deploy* ulang, pesanan pelanggan ikut gagal. Jadi jika menggunakan solusi ini akan mengulang masalah monolit dalam bentuk lain.
+
 - Opsi 2: Pub-Sub. Pembayaran butuh kepastian hasil sebelum pesanan dilanjutkan. Kalau dibuat *event* murni/asinkron, alur menjadi kacau dan sulit dikontrol tepat di titik yang paling sensitif (uang). Contoh: saat *user* menekan tombol bayar, *event* pembayaran terkirim. Namun misalkan *user* ingin membatalkan pembayaran dengan menekan tombol batalkan pembayaran, ada kemungkinan *event* pembatalan pembayaran lebih cepat diproses oleh sistem sehingga sistem/alurnya menjadi kacau dan bahkan uang *user* tetap terpotong.
 - PIlihan kami: Kombinasi SOA+Pub-Sub. Alur yang butuh jawaban langsung memakai *request-response*, dan setiap panggilannya diberi *timeout* dan *retry* terbatas. Alur yang berupa "beri tahu pihak lain bahwa sesuatu terjadi" memakai *event* atau Pub-Sub.
 
