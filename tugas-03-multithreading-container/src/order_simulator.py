@@ -17,7 +17,8 @@ NUM_WORKERS = 10        # jumlah thread pekerja
 processed_count = 0
 
 # TODO 1: Buat objek Lock di sini untuk melindungi `processed_count`.
-# lock = threading.Lock()
+lock = threading.Lock()
+USE_LOCK = True
 
 
 def process_order(order_id: int) -> None:
@@ -33,7 +34,14 @@ def process_order(order_id: int) -> None:
     # Langkah 2: bungkus increment dengan `with lock:` dan buktikan hasilnya
     #            selalu tepat NUM_ORDERS. Simpan bukti kedua kondisi ini
     #            di JURNAL.md / folder bukti/.
-    pass
+    if USE_LOCK:
+        with lock:
+            current = processed_count
+            processed_count = current + 1
+    else:
+        current = processed_count
+        time.sleep(0.0005) # agar race condition lebih mudah telihat/terjadi           
+        processed_count = current + 1
 
 
 def worker(order_ids: list) -> None:
