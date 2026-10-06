@@ -6,6 +6,7 @@
 import threading
 import random
 import time
+import os
 
 NUM_ORDERS = 100        # jumlah pesanan simulasi yang masuk
 NUM_WORKERS = 10        # jumlah thread pekerja
