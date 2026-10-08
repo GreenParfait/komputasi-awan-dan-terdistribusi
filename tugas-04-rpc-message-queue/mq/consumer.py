@@ -14,11 +14,14 @@ def callback(ch, method, properties, body):
     pesan = json.loads(body)
     # TODO 1: proses pesan (misalnya cetak "Kurir menerima notifikasi
     # pembayaran untuk {user_id} sejumlah {jumlah}").
-    print(f"[TODO] Pesan diterima tapi belum diproses: {pesan}")
+    print(
+        f"Kurir menerima notifikasi pembayaran untuk "
+        f"{pesan['user_id']} sejulah {pesan['jumlah']}"
+    )
 
     # TODO 2: kirim acknowledgement ke RabbitMQ (ch.basic_ack) supaya
     # pesan dihapus dari antrean setelah berhasil diproses.
-
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def main():
     # TODO 3: buat koneksi & channel seperti di publisher.py, deklarasikan
