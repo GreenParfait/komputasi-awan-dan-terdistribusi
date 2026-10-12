@@ -27,9 +27,34 @@ def main():
     # TODO 3: buat koneksi & channel seperti di publisher.py, deklarasikan
     # queue yang SAMA (durable=True), lalu daftarkan `callback` dengan
     # channel.basic_consume(...).
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(host="localhost")
+    )
+    channel = connection.channel()
+
+    # Queue harus dideklarasikan sama persis dengan publisher (durable=True)
+    channel.queue_declare(queue=QUEUE_NAME, durable=True)
+
+    # Hanya ambil 1 pesan pada satu waktu sampai di-ack (fair dispatch)
+    channel.basic_qos(prefetch_count=1)
+
+    # auto_ack=False agar acknowledgement dilakukan manual di callback
+    channel.basic_consume(
+        queue=QUEUE_NAME,
+        on_message_callback=callback,
+        auto_ack=False,
+    )
+
     print("Menunggu event dari antrean 'pembayaran_berhasil'... (Ctrl+C untuk berhenti)")
 
     # TODO 4: panggil channel.start_consuming()
+    try:
+        channel.start_consuming()
+    except KeyboardInterrupt:
+        print("\nConsumer dihentikan.")
+        channel.stop_consuming()
+    finally:
+        connection.close()
 
 
 if __name__ == "__main__":
