@@ -79,7 +79,6 @@ class Node:
 
         if msg_type == "ELECTION":
             if self.node_id > sender_id:
-
                 sender_port = self.peers.get(sender_id)
                 if sender_port is not None:
                     self.send_message(sender_port, "OK")
@@ -92,7 +91,7 @@ class Node:
             with self.lock:
                 self.leader_id = sender_id
             self.got_coordinator.set()
-        print(f"[Node {self.node_id}] Leader sekarang: node {sender_id}")
+            print(f"[Node {self.node_id}] Leader sekarang: node {sender_id}")
 
         print(f"[Node {self.node_id}] Menerima pesan '{msg_type}' dari node {sender_id} (TODO: proses ini)")
 
@@ -130,22 +129,20 @@ class Node:
             with self.lock:
                 self.electing = False
 
-        higher_peers = {pid: p for pid, p in self.peers.items() if pid > self.node_id}
-        print(f"[Node {self.node_id}] TODO: mulai election ke peer lebih tinggi: {higher_peers}")
-
     def declare_leader(self):
         """Node ini menyatakan dirinya leader dan memberi tahu semua node lain."""
         # TODO 3: set self.leader_id = self.node_id, lalu kirim "COORDINATOR"
         # ke SEMUA peer (bukan cuma yang lebih tinggi).
         with self.lock:
             self.leader_id = self.node_id
-        print(f"[Node {self.node_id}] TODO: broadcast COORDINATOR, saya jadi leader")
+        print(f"[Node {self.node_id}] Saya menjadi LEADER, broadcast COORDINATOR")
 
         # kirim ke SEMUA peer (bukan hanya yang lebih tinggi)
         for pid, port in self.peers.items():
             ok = self.send_message(port, "COORDINATOR")
             if not ok:
                 print(f"[Node {self.node_id}] Node {pid} tidak merespons (mungkin mati)")
+                
     def monitor_leader(self):
         """Loop periodik: cek apakah leader masih hidup, trigger election jika mati."""
         while True:
@@ -177,8 +174,6 @@ class Node:
                     if self.leader_id == leader:
                         self.leader_id = None
                 self.start_election()
-            pass
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -202,7 +197,6 @@ def main():
 
     while True:
         time.sleep(60)
-
 
 if __name__ == "__main__":
     main()
