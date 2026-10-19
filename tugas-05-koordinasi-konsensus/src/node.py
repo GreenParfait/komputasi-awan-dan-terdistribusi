@@ -141,6 +141,11 @@ class Node:
             self.leader_id = self.node_id
         print(f"[Node {self.node_id}] TODO: broadcast COORDINATOR, saya jadi leader")
 
+        # kirim ke SEMUA peer (bukan hanya yang lebih tinggi)
+        for pid, port in self.peers.items():
+            ok = self.send_message(port, "COORDINATOR")
+            if not ok:
+                print(f"[Node {self.node_id}] Node {pid} tidak merespons (mungkin mati)")
     def monitor_leader(self):
         """Loop periodik: cek apakah leader masih hidup, trigger election jika mati."""
         while True:
@@ -149,6 +154,29 @@ class Node:
             # (mis. kirim pesan "PING" atau cukup coba connect). Jika gagal
             # (leader mati) dan node ini belum tahu leader baru, panggil
             # start_election().
+            with self.lock:
+                leader = self.leader_id
+                electing = self.electing
+
+            # belum ada leader, atau sedang election -> tidak perlu ping
+            if leader is None or electing:
+                continue
+
+            # saya sendiri leader -> tidak perlu ping diri sendiri
+            if leader == self.node_id:
+                continue
+
+            leader_port = self.peers.get(leader)
+            if leader_port is None:
+                continue
+
+            if not self.send_message(leader_port, "PING"):
+                print(f"[Node {self.node_id}] Leader node {leader} tidak merespons, memulai election")
+                with self.lock:
+                    # reset agar tidak dianggap masih punya leader yang valid
+                    if self.leader_id == leader:
+                        self.leader_id = None
+                self.start_election()
             pass
 
 
