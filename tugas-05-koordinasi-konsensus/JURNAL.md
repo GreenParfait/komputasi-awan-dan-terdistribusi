@@ -4,12 +4,22 @@
 - Kendala saat mengisi TODO 1-4: ...
 
 ## Skenario 1: Start normal
-- Leader yang terpilih: ...
-- Log/observasi: ...
+- Leader yang terpilih: node 5
+- Log/observasi: 
+  - Node 5 memulai election ke peer lebih tinggi `{}` (karena tidak ada peer dengan ID lebih besar), sehingga langsung menyatakan diri `LEADER` dan mem-broadcast `COORDINATOR`.
+  - Node 1-4 saling mengirim `ELECTION` ke node yang memiliki ID lebih besar dan menerima `OK` dari node-node di atasnya, lalu berhenti mencalonkan diri.
+  - Setelah menerima `COORDINATOR` dari node 5, semua node 1-4 mencatat `Leader sekarang: node 5`.
+  - Node 5 dua kali menjadi leader karena menerima `ELECTION` dari node 1-4 setelah ia sudah terpilih, lalu ia membalas dan memulai election lagi. Akibatnya `COORDINATOR` dikirim dua kali (redundan), tetapi hasil akhirnya tetap konsisten.
+  - Jumlah pesan untuk 5 node: `ELECTION` = 10, `OK` = 10, `COORDINATOR` = 8 (total 28 pesan).
+  - Bukti: `bukti/skenario1_node1.txt` sampai `bukti/skenario1_node5.txt`.
 
 ## Skenario 2: Leader dimatikan
-- Leader baru yang terpilih: ...
-- Berapa lama waktu sampai leader baru terdeteksi: ...
+- Leader baru yang terpilih: node 4
+- Berapa lama waktu sampai leader baru terdeteksi:
+  - Kematian node 5 terdeteksi pertama kali oleh node 1 pada **17:20:43** (`Leader node 5 tidak merespons, memulai election`). Deteksi bisa terlambat hingga 3 detik dari saat node 5 mati karena `monitor_leader` melakukan ping tiap 3 detik.
+  - Node 4 menyatakan diri leader pada **17:20:48** (±5 detik setelah deteksi pertama), karena ia menunggu `ELECTION_TIMEOUT` 2 detik tanpa `OK` dari node 5 dan pengiriman pesan ke node mati memakan waktu.
+  - Seluruh node mengakui node 4 sebagai leader paling lambat pada **17:20:51** (node 3), yaitu **±8 detik** setelah deteksi pertama. Selisih antar node terjadi karena `declare_leader` mengirim `COORDINATOR` ke peer satu per satu secara berurutan.
+  - Selama ±8 detik tersebut sistem tidak memiliki leader yang valid.
 
 ## Log Penggunaan AI (Level 2)
 
