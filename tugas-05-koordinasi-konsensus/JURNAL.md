@@ -1,7 +1,9 @@
 # Jurnal Proses — Tugas 5
 
 ## Implementasi Bully
-- Kendala saat mengisi TODO 1-4: ...
+- Kendala saat mengisi TODO 1-4:
+1. ada beberapa pesan yang muncul dalam satu waktu karena adanya beberapa *thread* mencoba *print* log dalam satu waktu, sehingga kami memutuskan untuk membuat objek kunci agar hanya ada satu *thread* yang  menge-*print* log dalam satu waktu.
+2. kami sempat bingung bagaimana alur yang bisa dijadikan bukti karena ketiadaan format waktu pada code awal kami. sehingga kami menambahkan stempel waktu di setiap pesan log.
 
 ## Skenario 1: Start normal
 - Leader yang terpilih: ...
