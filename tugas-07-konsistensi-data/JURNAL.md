@@ -9,10 +9,91 @@
   - Karena itu dipakai *client-centric consistency*, yaitu **Read-Your-Writes (RYW)**. RYW lebih lemah dari sequential consistency, tetapi cukup untuk kasus ini dan lebih murah diterapkan.
   - RYW hanya memperbaiki sisi baca. Penulisan saldo tetap harus diserialisasi di primary agar dua request pada wallet yang sama (misalnya dua perangkat) tidak saling menimpa.
 
+  agar mempermudah dalam memahaminya, kami sajikan dalam bentuk tabel berikut.
+
+| Data / operasi | Dampak jika basi | Model yang tepat | Alasan |
+|---|---|---|---|
+| **Debit/kredit saldo** (top-up, bayar pesanan) | Kerugian uang, sengketa, masalah audit | **Urutan tulis tunggal per akun** (sequential per akun) | Dua penulisan atas saldo yang sama tidak boleh saling timpa atau dibaca dari data basi. Semua penulisan satu akun lewat satu primary, sehingga ada satu urutan operasi yang sama untuk akun itu. |
+| **Validasi saldo saat membayar** | Salah setuju atau salah tolak | Baca dari **primary** (data otoritatif) | Keputusan bisnis atas uang tidak boleh diambil dari replika yang mungkin tertinggal. |
+| **Pelanggan melihat saldonya sendiri** | Pelanggan bingung, mengira top-up gagal | **Read-Your-Writes**  | Yang dilihat pelanggan harus mencerminkan tindakannya sendiri. Tidak perlu semua replika sinkron seketika. |
+| Menu, rating restoran, jumlah *like*/ulasan | Tampilan sedikit terlambat, tidak ada kerugian uang | **Eventual** | Basi beberapa detik tidak berbahaya, dan menuntut konsistensi kuat hanya menambah latensi. |
+
+Intinya, salah menampilkan "jumlah like" 1.203 padahal 1.205 tidak merugikan siapa pun, sedangkan salah menampilkan saldo bisa menggagalkan transaksi atau meloloskan transaksi yang seharusnya ditolak.
+
 - **Kesimpulan akhir & alasan:**
   - **Eventual consistency saja tidak cukup** untuk saldo. Dampak bisnisnya besar: transaksi sah ditolak, saldo tidak cocok, kepercayaan pengguna turun.
   - Model yang dipilih: **penulisan saldo diserialisasi di primary (Jakarta)**, ditambah **Read-Your-Writes** untuk pembacaan dari replika.
   - RYW diimplementasikan dengan **versi penulisan**. Setiap penulisan menghasilkan nomor versi baru (penomoran global yang monoton), dan replika menyimpan versi terakhir **per pengguna**. Client menyimpan versi dari penulisan terakhirnya sendiri. Saat membaca dari replika, replika hanya melayani jika versinya >= versi client. Jika belum, ada dua pilihan: menunggu replikasi (*poll*) atau *redirect* ke Jakarta. Jika *poll* melewati batas waktu, sistem *fallback* ke Jakarta.
+
+  agar mempermudah dalam memahaminya, kami sajikan dalam bentuk tabel berikut.
+
+| Strategi | Cara kerja | Kelebihan | Kekurangan |
+|---|---|---|---|
+| **Redirect ke primary** | Replika meneruskan pembacaan ke Jakarta | Respons langsung benar, tanpa menunggu | Menambah beban dan latensi lintas region, hanya selama replika tertinggal |
+| **Poll/tunggu** | Replika menunggu update tiba (cek tiap 100 ms, maksimal 3 detik), jika lewat batas fallback ke redirect | Pembacaan tetap lokal | Latensi sebesar sisa delay replikasi (di simulasi 2,00 detik) |
+
+## Sequence diagram
+### Tanpa jaminan konsistensi 
+ 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Pelanggan
+    participant J as Server Jakarta (primary)
+    participant R as Proses Replikasi
+    participant B as Server Bandung (replika)
+ 
+    P->>J: top-up Rp50.000
+    J->>J: tulis saldo = 50.000 (versi 1)
+    J-->>P: OK
+    J-)R: kirim update versi 1 (asinkron)
+    Note over R,B: delay replikasi 2 detik
+    P->>B: pesan makanan Rp35.000
+    B->>B: baca saldo lokal = 0
+    B-->>P: DITOLAK, saldo tidak cukup
+    Note over P,B: BUG di sini. Saldo sebenarnya 50.000 tetapi Bandung belum menerima update
+    R-)B: update versi 1 tiba (setelah 2 detik)
+    B->>B: tulis saldo = 50.000
+    Note over B: replika akhirnya konsisten, tetapi pesanan sudah terlanjur ditolak
+```
+ 
+Kegagalan terjadi pada langkah 5–7, yaitu Bandung membaca data lokal yang belum menerima versi 1 lalu menolak pesanan.
+ 
+### Dengan Read-Your-Writes 
+ 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as Pelanggan
+    participant J as Server Jakarta (primary)
+    participant R as Proses Replikasi
+    participant B as Server Bandung (replika)
+ 
+    P->>J: top-up Rp50.000
+    J->>J: tulis saldo = 50.000 (versi 1)
+    J-->>P: OK + token versi 1
+    J-)R: kirim update versi 1 (asinkron)
+    Note over R,B: delay replikasi 2 detik
+    P->>B: baca saldo dengan versi_minimal = 1
+    B->>B: versi lokal 0, lebih kecil dari 1, berarti basi
+    alt Strategi redirect
+        B->>J: teruskan pembacaan
+        J-->>B: saldo 50.000 (versi 1)
+        B-->>P: saldo 50.000
+    else Strategi poll
+        loop tiap 100 ms, maksimal 3 detik
+            B->>B: cek apakah versi lokal sudah 1
+        end
+        R-)B: update versi 1 tiba
+        B-->>P: saldo 50.000
+    end
+    P->>B: pesan makanan Rp35.000
+    B->>J: debit Rp35.000 jika versi masih 1 (compare-and-set)
+    J-->>B: OK, saldo 15.000 (versi 2)
+    B-->>P: pesanan DITERIMA
+```
+ 
+Perbaikan pada langkah 7–8 (Bandung mendeteksi dirinya basi lewat versi) dan langkah di blok `alt` (jalur yang menghasilkan saldo benar). Langkah debit di akhir menunjukkan aturan bahwa penulisan dan validasi uang tetap di primary.
 
 ## Simulasi
 - Dijalankan dengan `python src/replica_simulation.py`. Semua `assert` lolos. Output lengkap ada di `bukti/output.txt`.
